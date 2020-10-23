@@ -7,16 +7,20 @@
 // Setup TWI hardware.
 void TWI_Setup(void)
 {
-	// TWI pins as Outputs
-	DDRC |= 1<<5;	// Sets PC5 (SCL) as output (1 = high) using the Port C Data Direction Register (DDRC)
-	DDRC |= 1<<4; // Sets PC4 (SDA) as output (1 = high) using the Port C Data Direction Register (DDRC)
+	// Sets PC5 (SCL) as output (1 = high) using the Port C Data Direction Register (DDRC)
+	DDRC |= 1<<5;
+	// Sets PC4 (SDA) as output (1 = high) using the Port C Data Direction Register (DDRC)	
+	DDRC |= 1<<4; 
 	
+	// PORTC |= 1<<5; // Testar se é necessário: testei e não parece ser necessário
+	// PORTC |= 1<<4; // Testar se é necessário: testei e não parece ser necessário
+
 	// Initialize TWI prescaler and bit rate
 	TWSR = 0x00;	// Prescaler = 1
 	TWBR = (uint8_t)(((F_CPU / F_SCL) - 16) / 2);
 
 	// Enable TWI module
-	TWCR = (1<<TWEN);
+	TWCR = 1<<TWEN;
 }
 
 // Get TWI status. 
@@ -33,37 +37,35 @@ uint8_t TWI_BeginTransmission(void)
 
 	// Wait for TWINT Flag set. This indicates that
 	// the START condition has been transmitted.
-	while (!BitCheck(TWCR, TWINT));
+	while (!(TWCR & (1<<TWINT)));
 
 	// Return status register
-	return (TWI_Status());
+	return TWI_Status();
 }
 
 // End TWI transmission. 
 void TWI_EndTransmission(void)
 {
 	// Transmit STOP condition
-	TWCR = (1<<TWEN) | (1<<TWIE) | (1<<TWEA) | (1<<TWINT) | (1<<TWSTO);
+	TWCR = (1<<TWINT) | (1<<TWEN) | (1<<TWSTO);
 
 	// Wait for stop condition to be executed on bus
 	// TWINT is not set after a stop condition!
-	while(BitCheck(TWCR, TWSTO));
+	while (TWCR & (1<<TWSTO));
 }
 
 // Transmit data. 
 uint8_t TWI_Transmit(const uint8_t Data)
 {
-	// Data to be transmitted
-	TWDR = Data;
+	TWDR = Data; // Load DATA into TWDR Register
+	TWCR = (1<<TWINT) | (1<<TWEN); // Clear TWINT bit in TWCR to start transmission of data
+	
+	// Wait for TWINT Flag Set. This indicates that the DATA has been transmitted 
+	// and ACK/NACK has been received
+	while (!(TWCR & (1<<TWINT)));  
 
-	// Start transmission
-	TWCR = (1<<TWINT) | (1<<TWEN);
-
-	// Wait data to be shifted
-	while (!BitCheck(TWCR, TWINT));
-
-	// Return status register
-	return (TWI_Status());
+	// Return TWI Status Register
+	return TWI_Status();
 }
 
 // Wait until ACK received. 
@@ -72,7 +74,7 @@ uint8_t TWI_ReceiveACK(void)
 	TWCR = (1<<TWINT) | (1<<TWEA) | (1<<TWEN);
 	
 	// Wait till reception is
-	while (!BitCheck(TWCR, TWINT));
+	while (!(TWCR & (1<<TWINT)));
 
 	// Return received data
 	return TWDR;
@@ -84,7 +86,7 @@ uint8_t TWI_ReceiveNACK(void)
 	TWCR = (1<<TWINT) | (1<<TWEN);
 
 	// Wait till reception is
-	while (!BitCheck(TWCR, TWINT));
+	while (!(TWCR & (1<<TWINT)));
 
 	// Return received data
 	return TWDR;

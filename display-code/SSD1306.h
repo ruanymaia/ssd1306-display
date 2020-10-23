@@ -80,8 +80,10 @@ typedef struct
 
 // Prototypes
 void GLCD_SendCommand(uint8_t Command);
+// void GLCD_SendData(const uint8_t Data);
 void GLCD_Setup(void);
 void GLCD_Render(void);
+// void GLCD_SetDisplay(const uint8_t On);
 
 void GLCD_GotoX(const uint8_t X);
 void GLCD_GotoY(const uint8_t Y);

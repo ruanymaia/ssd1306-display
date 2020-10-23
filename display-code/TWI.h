@@ -5,9 +5,6 @@
 #include <inttypes.h>
 #include <avr/io.h>
 
-// Bit check macro
-#define BitCheck(p, m)	((p)&(m))
-
 // Clock Definitions
 #define F_CPU 8000000UL	// AVR Frequency
 #define F_SCL 400000UL	// SCL Frequency
