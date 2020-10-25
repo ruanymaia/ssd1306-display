@@ -7,14 +7,6 @@
 // Setup TWI hardware.
 void TWI_Setup(void)
 {
-	// Sets PC5 (SCL) as output (1 = high) using the Port C Data Direction Register (DDRC)
-	DDRC |= 1<<5;
-	// Sets PC4 (SDA) as output (1 = high) using the Port C Data Direction Register (DDRC)	
-	DDRC |= 1<<4; 
-	
-	// PORTC |= 1<<5; // Testar se é necessário: testei e não parece ser necessário
-	// PORTC |= 1<<4; // Testar se é necessário: testei e não parece ser necessário
-
 	// Initialize TWI prescaler and bit rate
 	TWSR = 0x00;	// Prescaler = 1
 	TWBR = (uint8_t)(((F_CPU / F_SCL) - 16) / 2);

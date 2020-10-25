@@ -308,8 +308,7 @@ static void GLCD_Send(const uint8_t Control, uint8_t *Data, const uint8_t Length
 {
 	uint8_t i;
 
-	do
-	{
+
 		// Transmit START signal
 		TWI_BeginTransmission();
 
@@ -324,8 +323,7 @@ static void GLCD_Send(const uint8_t Control, uint8_t *Data, const uint8_t Length
 			// Transmit data
 			TWI_Transmit(Data[i]);
 		}
-	}
-	while (0);
+
 	
 	// Transmit STOP signal
 	TWI_EndTransmission();
