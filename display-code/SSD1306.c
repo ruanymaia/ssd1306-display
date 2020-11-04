@@ -1,61 +1,54 @@
 #include "SSD1306.h"
 
 // Auxiliary data 
-uint8_t __GLCD_Buffer[__GLCD_Screen_Width * __GLCD_Screen_Lines];
+uint8_t __GLCD_Buffer[1024]; // Screen Width * Screen Lines
 GLCD_t __GLCD;
-
-// Functions 
-void GLCD_SendCommand(uint8_t Command)
-{
-	GLCD_Send(0<<__GLCD_DC, &Command, 1);
-}
 
 void GLCD_Setup(void)
 {
 	// Setup I2C hardware
 	TWI_Setup();
 
-	// Commands needed for initialization
-	GLCD_SendCommand(__GLCD_Command_Display_Off);					// 0xAE
-	
-	GLCD_SendCommand(__GLCD_Command_Display_Clock_Div_Ratio_Set);	// 0xD5
-	GLCD_SendCommand(0xF0);											// Suggest ratio
-	
-	GLCD_SendCommand(__GLCD_Command_Multiplex_Radio_Set);			// 0xA8
-	GLCD_SendCommand(__GLCD_Screen_Height - 1);
-	
-	GLCD_SendCommand(__GLCD_Command_Display_Offset_Set);			// 0xD3
-	GLCD_SendCommand(0x00);											// No offset
+	// Software Initialization
+	GLCD_SendCommand(0x20);	// Set Memory Addressing Mode
+	GLCD_SendCommand(0x00);	// Horizontal Addressing Mode
 
-	GLCD_SendCommand(__GLCD_Command_Charge_Pump_Set);				// 0x8D
-	GLCD_SendCommand(0x14);											// Enable charge pump
+	GLCD_SendCommand(0xA8);	// Set Multiplex Ratio		
+	GLCD_SendCommand(0x3F);
 
-	GLCD_SendCommand(__GLCD_Command_Display_Start_Line_Set | 0x00);	// 0x40 | Start line
+	GLCD_SendCommand(0xD3);	// Set Display Offset		
+	GLCD_SendCommand(0x00);	
 	
-	GLCD_SendCommand(__GLCD_Command_Memory_Addressing_Set);			// 0x20
-	GLCD_SendCommand(0x00);							// Horizontal Addressing - Operate like KS0108
-	
-	GLCD_SendCommand(__GLCD_Command_Segment_Remap_Set | 0x01);		// 0xA0 - Left towards Right
+	GLCD_SendCommand(0x40);	// Set Display Start Line	
 
-	GLCD_SendCommand(__GLCD_Command_Com_Output_Scan_Dec);			// 0xC8 - Up towards Down
+	GLCD_SendCommand(0xA1);	// Set Segment Remap 
 
-	GLCD_SendCommand(__GLCD_Command_Com_Pins_Set);				// 0xDA
-	
-	GLCD_SendCommand(0x12);						// Sequential COM pin configuration
-	
-	GLCD_SendCommand(__GLCD_Command_Constrast_Set);				// 0x81
-	GLCD_SendCommand(0xFF);
+	GLCD_SendCommand(0xC8);	// Set COM Output Scan Direction - up to down
 
-	GLCD_SendCommand(__GLCD_Command_Precharge_Period_Set);			// 0xD9
-	GLCD_SendCommand(0xF1);
+	GLCD_SendCommand(0xDA);	// Set COM Pins hardware configuration
+	GLCD_SendCommand(0x12);	
 
-	GLCD_SendCommand(__GLCD_Command_VCOMH_Deselect_Level_Set);		// 0xDB
-	GLCD_SendCommand(0x20);
+	GLCD_SendCommand(0x81);	// Set Contrast Control
+	GLCD_SendCommand(0xFF);	// 0x00 to 0xFF
 
-	GLCD_SendCommand(__GLCD_Command_Display_All_On_Resume);			// 0xA4
-	GLCD_SendCommand(__GLCD_Command_Display_Normal);			// 0xA6
-	GLCD_SendCommand(__GLCD_Command_Display_On);				// 0xAF
-	
+	GLCD_SendCommand(0xA4);	// Disable Entire Display On
+
+	GLCD_SendCommand(0xA6);	// Set Normal/Inverse Display (0xA6/0xA7)
+
+	GLCD_SendCommand(0xD5);	// Set Oscillator Frequency
+	GLCD_SendCommand(0xF0);	
+
+	GLCD_SendCommand(0xD9);	// Set pre-charge Period
+	GLCD_SendCommand(0xF1);	
+
+	GLCD_SendCommand(0x8D);	// Enable charge pump regulator
+	GLCD_SendCommand(0x14);
+
+	GLCD_SendCommand(0xDB);	// Set VCOMH Deselect Level
+	GLCD_SendCommand(0x20);	
+
+	GLCD_SendCommand(0xAF); // Display ON
+
 	// Go to 0,0
 	GLCD_GotoXY(0, 0);
 	
@@ -65,71 +58,51 @@ void GLCD_Setup(void)
 
 void GLCD_Render(void)
 {
-	// We have to send buffer as 16-byte packets
-	// Buffer Size:				  Width * Height / Line_Height
-	// Packet Size:				  16
-	// Loop Counter:				  Buffer size / Packet Size		=
-	// 							= ((Width * Height) / 8) / 16	=
-	// 							= (Width / 16) * (Height / 8)	=
-	// 							= (Width >> 4) * (Height >> 3)
-	uint8_t i, loop;
-	loop = (__GLCD_Screen_Width>>4) * (__GLCD_Screen_Height>>3);
+	// Buffer Size:		Width*Height / Line_Height = 1024 bytes
+	// Packet Size:		16 bytes
+	// Loop Counter:	Buffer size / Packet Size	= 64
+	
+	uint8_t i, count;
+	count = 64; 
 
 	// Set columns
-	GLCD_SendCommand(__GLCD_Command_Column_Address_Set);			// 0x21
-	GLCD_SendCommand(0x00);									// Start
-	GLCD_SendCommand(__GLCD_Screen_Width - 1);				// End
+	GLCD_SendCommand(0x21);		// Set Column Address
+	GLCD_SendCommand(0x00);		// Start
+	GLCD_SendCommand(127);		// End
 
 	// Set rows
-	GLCD_SendCommand(__GLCD_Command_Page_Address_Set);			// 0x22
-	GLCD_SendCommand(0x00);									// Start
-	GLCD_SendCommand(__GLCD_Screen_Lines - 1);				// End
+	GLCD_SendCommand(0x22);		// Set Page Address
+	GLCD_SendCommand(0x00);		// Start
+	GLCD_SendCommand(7);		// End: __GLCD_Screen_Lines - 1
 
 	// Send buffer
-	for (i = 0 ; i < loop ; i++)
-		GLCD_Send(1<<__GLCD_DC, &__GLCD_Buffer[i<<4], 16);
-}
-
-void GLCD_GotoX(const uint8_t X)
-{
-	if (X < __GLCD_Screen_Width)
-		__GLCD.X = X;
-}
-
-void GLCD_GotoY(const uint8_t Y)
-{
-	if (Y < __GLCD_Screen_Height)
-		__GLCD.Y = Y;
+	for (i = 0 ; i < count ; i++)
+		GLCD_SendData(&__GLCD_Buffer[i<<4]);
+		
 }
 
 void GLCD_GotoXY(const uint8_t X, const uint8_t Y)
 {
-	GLCD_GotoX(X);
-	GLCD_GotoY(Y);
+	// X: 0-127; Y: 0-63;
+	__GLCD.X = X;
+	__GLCD.Y = Y;
 }
 
-uint8_t GLCD_GetLine(void)
+void GLCD_SetFont(const uint8_t *name, const uint8_t width, const uint8_t height)
 {
-	return (__GLCD_GetLine(__GLCD.Y));
+	// Change font pointer to new font
+	__GLCD.Font.Name = (uint8_t *)(name);
+	
+	// Update font's size
+	__GLCD.Font.Width = width;
+	__GLCD.Font.Height = height;
+
+	// Update lines required for a character to be fully displayed
+	__GLCD.Font.Lines = (height - 1) / __GLCD_Screen_Line_Height + 1;
+
 }
 
-void GLCD_SetFont(const uint8_t *Name, const uint8_t Width, const uint8_t Height)
-{
-	if ((Width < __GLCD_Screen_Width) && (Height < __GLCD_Screen_Height))
-	{
-		// Change font pointer to new font
-		__GLCD.Font.Name = (uint8_t *)(Name);
-		
-		// Update font's size
-		__GLCD.Font.Width = Width;
-		__GLCD.Font.Height = Height;
-		
-		// Update lines required for a character to be fully displayed
-		__GLCD.Font.Lines = (Height - 1) / __GLCD_Screen_Line_Height + 1;
-	}
-}
-
-void GLCD_PrintChar(char Character)
+void GLCD_PrintChar(char character)
 {
 	// If it doesn't work, replace pgm_read_byte with pgm_read_word
 	uint16_t fontStart, fontRead, fontReadPrev;
@@ -141,10 +114,10 @@ void GLCD_PrintChar(char Character)
 	y = y2 = __GLCD.Y;
 	
 	// #2 - Remove leading empty characters
-	Character -= 32;														// 32 is the ASCII of the first printable character
+	character -= 32;	// 32 is the ASCII of the first printable character
 	
 	// #3 - Find the start of the character in the font array
-	fontStart = Character * (__GLCD.Font.Width * __GLCD.Font.Lines + 1);		// +1 due to first byte of each array line being the width
+	fontStart = character * (__GLCD.Font.Width * __GLCD.Font.Lines + 1);	// +1 due to first byte of each array line being the width
 	
 	// #4 - Update width - First byte of each line is the width of the character
 	width = pgm_read_byte(&(__GLCD.Font.Name[fontStart++]));
@@ -190,7 +163,7 @@ void GLCD_PrintChar(char Character)
 		}
 
 		// Send an empty column of 1px in the end
-		GLCD_BufferWrite(__GLCD.X, __GLCD.Y, __GLCD_White);
+		GLCD_BufferWrite(__GLCD.X, __GLCD.Y, 0x00);
 		
 		// Increase line counter
 		y += __GLCD_Screen_Line_Height;
@@ -225,21 +198,21 @@ void GLCD_PrintChar(char Character)
 		}
 
 		// Send an empty column of 1px in the end
-		GLCD_BufferWrite(__GLCD.X, __GLCD.Y, __GLCD_White);
+		GLCD_BufferWrite(__GLCD.X, __GLCD.Y, 0x00);
 	}
 	
 	// Move cursor to the end of the printed character
 	GLCD_GotoXY(x + width + 1, y2);
 }
 
-void GLCD_PrintString(const char *Text)
+void GLCD_PrintString(const char *text)
 {
-	while(*Text)
+	while(*text)
 	{
 		if ((__GLCD.X + __GLCD.Font.Width) >= __GLCD_Screen_Width)
 			break;
 
-		GLCD_PrintChar(*Text++);
+		GLCD_PrintChar(*text++);
 	}
 }
 
@@ -304,34 +277,51 @@ void GLCD_PrintDouble(double Value, const uint8_t Precision)
 	}
 }
 
-static void GLCD_Send(const uint8_t Control, uint8_t *Data, const uint8_t Length)
+static void GLCD_SendCommand(int command)
 {
-	uint8_t i;
+	// Transmit START signal
+	TWI_BeginTransmission();
 
+	// Transmit SLA+W
+	TWI_Transmit(0x3C<<1);	// 0x3C - SSD1306 I2C address
+	
+	// Transmit D/C# selection bit - 0<<DC
+	TWI_Transmit(0); // 0<<6 - D/C# pin low: command mode
 
-		// Transmit START signal
-		TWI_BeginTransmission();
-
-		// Transmit SLA+W
-		TWI_Transmit(0x3C<<1);	// 0x3C - SSD1306 I2C address
-		
-		// Transmit control byte
-		TWI_Transmit(Control);
-
-		for (i = 0 ; i < Length ; i++)
-		{
-			// Transmit data
-			TWI_Transmit(Data[i]);
-		}
-
+	// Transmit command
+	TWI_Transmit(command); 
 	
 	// Transmit STOP signal
 	TWI_EndTransmission();
 }
 
-static void GLCD_BufferWrite(const uint8_t X, const uint8_t Y, const uint8_t Data)
+static void GLCD_SendData(uint8_t *data)
 {
-	__GLCD_Buffer[__GLCD_Pointer(X, Y)] = Data;
+	uint8_t i, length;
+	length = 16;
+
+	// Transmit START signal
+	TWI_BeginTransmission();
+
+	// Transmit SLA+W
+	TWI_Transmit(0x3C<<1);	// 0x3C - SSD1306 I2C address
+	
+	// Transmit D/C# selection bit - 1<<DC
+	TWI_Transmit(64); // 1<<6 - D/C# pin high: data mode
+
+	for (i = 0 ; i < length ; i++)
+	{
+		// Transmit data
+		TWI_Transmit(data[i]);
+	}
+
+	// Transmit STOP signal
+	TWI_EndTransmission();
+}
+
+static void GLCD_BufferWrite(const uint8_t X, const uint8_t Y, const uint8_t data)
+{
+	__GLCD_Buffer[__GLCD_Pointer(X, Y)] = data;
 }
 
 static uint8_t GLCD_BufferRead(const uint8_t X, const uint8_t Y)

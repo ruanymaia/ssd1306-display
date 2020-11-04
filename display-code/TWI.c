@@ -1,8 +1,5 @@
 ﻿#include "TWI.h"
 
-#define __TWI_SLA_W(address)	(address<<1)
-#define __TWI_SLA_R(address)	((address<<1) | (1<<0))
-
 // Functions
 // Setup TWI hardware.
 void TWI_Setup(void)
@@ -47,9 +44,9 @@ void TWI_EndTransmission(void)
 }
 
 // Transmit data. 
-uint8_t TWI_Transmit(const uint8_t Data)
+uint8_t TWI_Transmit(const uint8_t data)
 {
-	TWDR = Data; // Load DATA into TWDR Register
+	TWDR = data; // Load DATA into TWDR Register
 	TWCR = (1<<TWINT) | (1<<TWEN); // Clear TWINT bit in TWCR to start transmission of data
 	
 	// Wait for TWINT Flag Set. This indicates that the DATA has been transmitted 
@@ -85,89 +82,81 @@ uint8_t TWI_ReceiveNACK(void)
 }
 
 // Transmit packet to specific slave address. 
-enum TWI_Status_t TWI_PacketTransmit(const uint8_t SLA, const uint8_t SubAddress, uint8_t *Packet, const uint8_t Length)
+uint8_t TWI_PacketTransmit(const uint8_t SLA, const uint8_t SubAddress, uint8_t *Packet, const uint8_t Length)
 {
 	uint8_t i, status;
 	
 	// Transmit START signal
 	status = TWI_BeginTransmission();
-	if ((status != MT_START_TRANSMITTED) && ((status != MT_REP_START_TRANSMITTED)))
+	if ((status != 0x08) && ((status != 0x10)))
 	{
-		status = TWI_Error;
-		break;
+		return 1;
 	}
+
 	// Transmit SLA+W
-	status = TWI_Transmit(__TWI_SLA_W(SLA));
-	if ((status != MT_SLA_W_TRANSMITTED_ACK) && (status != MT_SLA_W_TRANSMITTED_NACK))
+	status = TWI_Transmit(SLA<<1);
+	if ((status != 0x18) && (status != 0x20))
 	{
-		status = TWI_Error;
-		break;
+		return 1;
 	}
+
 	// Transmit write address
 	status = TWI_Transmit(SubAddress);
-	if ((status != MT_DATA_TRANSMITTED_ACK) && (status != MT_DATA_TRANSMITTED_NACK))
+	if ((status != 0x28) && (status != 0x30))
 	{
-		status = TWI_Error;
-		break;
+		return 1;
 	}
+
 	// Transmit DATA
 	for (i = 0 ; i < Length ; i++)
 	{
 		status = TWI_Transmit(Packet[i]);
-		if ((status != MT_DATA_TRANSMITTED_ACK) && (status != MT_DATA_TRANSMITTED_NACK))
+		if ((status != 0x28) && (status != 0x30))
 		{
-			status = TWI_Error;
-			break;
+			return 1;
 		}
 	}
-	// Transmitted successfully
-	status = TWI_Ok;
-
+	
 	// Transmit STOP signal
 	TWI_EndTransmission();
 
-	return status;
+	return 0;
 }
 
 // Receive packet from specific slave address. 
-enum TWI_Status_t TWI_PacketReceive(const uint8_t SLA, const uint8_t SubAddress, uint8_t *Packet, const uint8_t Length)
+uint8_t TWI_PacketReceive(const uint8_t SLA, const uint8_t SubAddress, uint8_t *Packet, const uint8_t Length)
 {
-	uint8_t i = 0, status;
+	uint8_t i, status;
 
 	// Transmit START signal
 	status = TWI_BeginTransmission();
-	if ((status != MT_START_TRANSMITTED) && (status != MT_REP_START_TRANSMITTED))
+	if ((status != 0x08) && (status != 0x10))
 	{
-		status = TWI_Error;
-		break;
+		return 1;
 	}
 	// Transmit SLA+W
-	status = TWI_Transmit(__TWI_SLA_W(SLA));
-	if ((status != MT_SLA_W_TRANSMITTED_ACK) && (status != MT_SLA_W_TRANSMITTED_NACK))
+	status = TWI_Transmit(SLA<<1);
+	if ((status != 0x18) && (status != 0x20))
 	{
-		status = TWI_Error;
-		break;
+		return 1;
 	}
 	// Transmit read address
 	status = TWI_Transmit(SubAddress);
-	if ((status != MT_DATA_TRANSMITTED_ACK) && (status != MT_DATA_TRANSMITTED_NACK))
+	if ((status != 0x28) && (status != 0x30))
 	{
-		status = TWI_Error;
-		break;
+		return 1;
 	}
 	// Transmit START signal
 	status = TWI_BeginTransmission();
-	if ((status != MR_START_TRANSMITTED) && (status != MR_REP_START_TRANSMITTED))
+	if ((status != 0x08) && (status != 0x10))
 	{
-		status = TWI_Error;
-		break;
+		return 1;
 	}
 	// Transmit SLA+R
-	status = TWI_Transmit(__TWI_SLA_R(SLA));
-	if ((status != MR_SLA_R_TRANSMITTED_ACK) && (status != MR_SLA_R_TRANSMITTED_NACK))
+	status = TWI_Transmit((SLA<<1) | (1<<0)); 
+	if ((status != 0x40) && (status != 0x48))
 	{
-		status = TWI_Error;
-		break;
+		return 1;
 	}
 	// Receive DATA
 	// Read all the bytes, except the last one, sending ACK signal
@@ -175,32 +164,27 @@ enum TWI_Status_t TWI_PacketReceive(const uint8_t SLA, const uint8_t SubAddress,
 	{
 		Packet[i] = TWI_ReceiveACK();
 		status = TWI_Status();
-		if ((status != MR_DATA_RECEIVED_ACK) && (status != MR_DATA_RECEIVED_NACK))
+		if ((status != 0x50) && (status != 0x58))
 		{
-			status = TWI_Error;
-			break;
+			return 1;
 		}
 	}
 	// Receive last byte and send NACK signal
 	Packet[i] = TWI_ReceiveNACK();
 	status = TWI_Status();
-	if ((status != MR_DATA_RECEIVED_ACK) && (status != MR_DATA_RECEIVED_NACK))
+	if ((status != 0x50) && (status != 0x58))
 	{
-		status = TWI_Error;
-		break;
+		return 1;
 	}
-	// Received successfully
-	status = TWI_Ok;
-
 	// Transmit STOP signal
 	TWI_EndTransmission();
 	
-	return status;
+	return 0;
 }
 
 // Set self slave address.
-void TWI_SetAddress(const uint8_t Address)
+void TWI_SetAddress(const uint8_t address)
 {
 	// Set TWI slave address (upper 7 bits)
-	TWAR = Address<<1;
+	TWAR = address<<1;
 } 
