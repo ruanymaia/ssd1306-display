@@ -1,0 +1,20 @@
+- iniciar video mostrando display com slides - 20s
+1 - This is my CS50 project
+2 - OLED display controlled with AVR
+3 - lorem ipsum
+
+- mostrar protoboard - 20s
+- falar sobre processo de fazer o projeto - 1:20
+    - planejamento
+    -- how to plan the project
+    -- what to do when I got stuck
+
+    - dificuldades
+    -- how a AVR works
+    -- how to make the AVR communicate with the display
+    -- how to search about the AVR and the display
+    ...
+    ??
+---------------
+    My boyfriend is a programmer and had some experience with microcontrollers years ago. He suggested the idea of the project and I liked it because it seemed really different from my experience in programming. I then had to learn some electronics and programming for embedded system, especifically for the AVR. It was a wild ride! Some paradigms and the environment are different from "high level" software, I had to worry about things like memory or program size that I wasn't used to.
+    I had many difficulties with this project, got frustrated and had some fights with him, but with perseverance I could get it working! I have used the code from the YYY github repository and stripped it down to only what was needed. This was very helpful and enabled me to get the project ready on time.
