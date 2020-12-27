@@ -8,7 +8,7 @@ As my objective is to print only text onto the screen, I simplified the code as 
 
 ## Hardware
 ### Circuit diagram 
-![display-circuit](/home/ruany/dev/weather-station/display-circuit.png)
+![display-circuit](https://github.com/ruanymaia/weather-station/blob/main/display-circuit.png)
 
 ## Software
 
