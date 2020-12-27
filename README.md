@@ -8,13 +8,14 @@ As my objective is to print only text onto the screen, I simplified the code as 
 
 ## Hardware
 ### Circuit diagram 
-
+![display-circuit](/home/ruany/dev/weather-station/display-circuit.png)
 
 ## Software
 
 ### Requirements
 ### How to build
 `avr-gcc -mmcu=atmega328p -Os main.c -o main.o`
+
 `avr-objcopy -j .text -j .data -O ihex  main.o  main.hex`
 
 ### How to burn it into the AVR

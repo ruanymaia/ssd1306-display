@@ -16,5 +16,5 @@
     ...
     ??
 ---------------
-    My boyfriend is a programmer and had some experience with microcontrollers years ago. He suggested the idea of the project and I liked it because it seemed really different from my experience in programming. I then had to learn some electronics and programming for embedded system, especifically for the AVR. It was a wild ride! Some paradigms and the environment are different from "high level" software, I had to worry about things like memory or program size that I wasn't used to.
+    My boyfriend is a programmer and had some experience with microcontrollers years ago. He suggested the idea of the project and I liked it because it seemed really different from my experience in programming. I then had to learn some electronics and programming for embedded systems, especifically for the AVR. It was a wild ride! Some paradigms and the environment are different from "high level" software, I had to worry about things like memory or program size that I wasn't used to.
     I had many difficulties with this project, got frustrated and had some fights with him, but with perseverance I could get it working! I have used the code from the YYY github repository and stripped it down to only what was needed. This was very helpful and enabled me to get the project ready on time.
