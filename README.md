@@ -9,21 +9,23 @@ As my objective is to print only text onto the screen, I simplified the code as 
 ## Hardware
 * Atmel ATMega328P microcontroller;
 * SSD1306-based OLED display with I2C communication ports.
+* AVR Programmer;
 
 ### Circuit diagram 
 ![display-circuit](https://github.com/ruanymaia/weather-station/blob/main/display-circuit.png)
 
 ## Software
-* C language
 
 ### Requirements
-### How to build
-`avr-gcc -mmcu=atmega328p -Os main.c -o main.o`
+* Compiler: GCC-AVR package;
+* Programming Software: AVRdude.
 
-`avr-objcopy -j .text -j .data -O ihex  main.o  main.hex`
+### How to build
+- `avr-gcc -mmcu=atmega328p -Os main.c -o main.o`
+- `avr-objcopy -j .text -j .data -O ihex  main.o  main.hex`
 
 ### How to burn it into the AVR
-`sudo avrdude -c usbtiny -p m328p -U flash:w:main.hex`
+- `sudo avrdude -c usbtiny -p m328p -U flash:w:main.hex`
 
 ### How it works
 
