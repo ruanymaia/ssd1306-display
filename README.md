@@ -7,10 +7,14 @@ I based my project on [this repository](https://github.com/efthymios-ks/AVR-SSD1
 As my objective is to print only text onto the screen, I simplified the code as much as I could to do just this specific task. I had to learn some concepts of electronics and embedded systems programming and made a lot of improvements on the code based on it and on CS50 classes. 
 
 ## Hardware
+* Atmel ATMega328P microcontroller;
+* SSD1306-based OLED display with I2C communication ports.
+
 ### Circuit diagram 
 ![display-circuit](https://github.com/ruanymaia/weather-station/blob/main/display-circuit.png)
 
 ## Software
+* C language
 
 ### Requirements
 ### How to build
