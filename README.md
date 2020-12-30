@@ -1,4 +1,5 @@
 # OLED display AVR interface
+![project](https://github.com/ruanymaia/ssd1306-display/blob/main/20201230_194731.jpg)
 
 ## How I built it
 I based my project on [this repository](https://github.com/efthymios-ks/AVR-SSD1306) available on GitHub. 
