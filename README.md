@@ -19,7 +19,7 @@ As my objective is to print only text onto the screen, I simplified the code as 
 - Programming Software: AVRdude.
 
 ### How to build
-- `avr-gcc -mmcu=atmega328p -Os main.c -o main.o`
+- `avr-gcc -mmcu=atmega328p -o main.o -Os main.c SSD1306.c TWI.c`
 - `avr-objcopy -j .text -j .data -O ihex  main.o  main.hex`
 
 ### How to burn it into the AVR

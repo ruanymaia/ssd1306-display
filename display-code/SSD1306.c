@@ -205,6 +205,15 @@ void GLCD_PrintChar(char character)
 	GLCD_GotoXY(x + width + 1, y2);
 }
 
+void GLCD_Clear(void)
+{
+	uint8_t i, j;
+
+	for (j = 0 ; j < __GLCD_Screen_Height ; j++)
+		for (i = 0 ; i < __GLCD_Screen_Width ; i++)
+			GLCD_BufferWrite(i, j, 0x00);
+}
+
 void GLCD_PrintString(const char *text)
 {
 	while(*text)

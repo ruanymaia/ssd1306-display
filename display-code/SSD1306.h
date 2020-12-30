@@ -43,6 +43,7 @@ void GLCD_GotoXY(const uint8_t X, const uint8_t Y);
 
 void GLCD_SetFont(const uint8_t *name, const uint8_t width, const uint8_t height);
 void GLCD_PrintChar(char Character);
+void GLCD_Clear(void);
 void GLCD_PrintString(const char *Text);
 void GLCD_PrintString_P(const char *Text);
 void GLCD_PrintInteger(const int32_t Value);

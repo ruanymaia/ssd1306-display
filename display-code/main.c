@@ -6,17 +6,31 @@ int main(void)
 	GLCD_Setup();
 	GLCD_SetFont(Font5x8, 5, 8);
 
-	GLCD_GotoXY(11, 2);
-	GLCD_PrintString("13 out 2020 12:00");
-	GLCD_GotoXY(5, 16);
-	GLCD_PrintString("T: 30.00 C");
-	GLCD_GotoXY(5, 28);
-	GLCD_PrintString("RH: 50.00 %");
-	GLCD_GotoXY(5, 40);
-	GLCD_PrintString("P: 920.40 hPa");
-	GLCD_GotoXY(5, 52);
-	GLCD_PrintString("H: 1538.00 m");
-	GLCD_Render();
+	while (1)
+	{
+		GLCD_GotoXY(25, 2);
+		GLCD_PrintString("This is CS50x");
+		_delay_ms(1000);
+		GLCD_Render();
+		
+		GLCD_GotoXY(35, 16);
+		GLCD_PrintString("C Language");
+		_delay_ms(1000);
+		GLCD_Render();
+
+		GLCD_GotoXY(20, 28);
+		GLCD_PrintString("ATMega328P AVR");
+		_delay_ms(1000);
+		GLCD_Render();
+
+		GLCD_GotoXY(5, 40);
+		GLCD_PrintString("SSD1306 OLED Display");
+		_delay_ms(1000);
+		GLCD_Render();
+
+		_delay_ms(1000);
+		GLCD_Clear();
+	}
 
     return 0;
 }
